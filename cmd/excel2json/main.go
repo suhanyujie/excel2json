@@ -148,6 +148,7 @@ func ConvertOneFile(fileFullPath string) error {
 			return err
 		}
 		tmpFs.WriteString(jsonx.ToJsonIgnoreErr(dataList))
+		tmpFs.Close()
 	}
 	return nil
 }
