@@ -11,12 +11,9 @@ import (
 	"strings"
 
 	"github.com/spf13/cast"
-
 	"github.com/suhanyujie/excel2json/pkg/utils/jsonx"
-
-	"github.com/xuri/excelize/v2"
-
 	"github.com/urfave/cli/v2"
+	"github.com/xuri/excelize/v2"
 )
 
 const (
@@ -24,10 +21,28 @@ const (
 )
 
 func main() {
+	var input string
+	var output string
 	app := &cli.App{
 		Name:   "toJson",
 		Usage:  "将特定的 xlsx 文件转换为 json 文件",
 		Action: DoConvert,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:        "input",
+				Value:       "./",
+				Aliases:     []string{"i"},
+				Usage:       "要转换的文件所在路径",
+				Destination: &input,
+			},
+			&cli.StringFlag{
+				Name:        "output",
+				Value:       "./output",
+				Aliases:     []string{"o"},
+				Usage:       "转换成 json 存放的路径",
+				Destination: &output,
+			},
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -39,19 +54,36 @@ func DoConvert(ctx *cli.Context) error {
 	// 1. 读取配置文件
 	// 2. 读取 excel 文件
 	// 3. 生成 json 文件
-	fmt.Println("ok!")
 	params := ctx.Args().Slice()
 	if len(params) == 0 {
+		// 没有参数时，意味着，转换当前目录下的 xlsx 文件，并将其输出到当前文件夹的 output 文件夹下
 		// 转换当前路径下的所有 xlsx 文件 todo
 		ConvertByDir("./example/data")
 	} else if len(params) == 1 {
+		// 有一个参数，有两种情况：
+		// 1.参数是输入文件夹
+		// 2.参数是输出文件夹
 		// 转换当前路径下的所有 xlsx 文件 todo
+	} else if len(params) == 2 {
+		// 2 个参数，一个是输入目录，一个是输出目录
+		fmt.Printf("参数错误")
+		return nil
 	} else {
+		// 其他参数，暂不支持
 		fmt.Printf("参数错误")
 		return nil
 	}
 	// fmt.Printf("%s", jsonx.ToJsonIgnoreErr(params))
 	return nil
+}
+
+func handleForInputParam(p1, p2 string) (inputDir string) {
+	// 对于只有输入目录的情况下，用户可能输入：`i=./`，也可能只输入 `./`
+	inputDir = p2
+	if p1 == "" {
+		inputDir = p1
+	}
+	return inputDir
 }
 
 func ConvertByDir(dir string) []string {
