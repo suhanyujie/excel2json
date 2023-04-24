@@ -105,7 +105,9 @@ func ConvertByDir(inputDir string) int {
 		if filepath.Ext(path) != ".xlsx" || strings.HasPrefix(d.Name(), "~") {
 			return nil
 		}
-		ConvertOneFile(path)
+		if err := ConvertOneFile(path); err != nil {
+			return err
+		}
 		cnt++
 		return nil
 	})
