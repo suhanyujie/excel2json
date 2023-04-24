@@ -16,13 +16,13 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-const (
-	TargetDir = "./example/output"
+var (
+	// default value
+	input  = "./"
+	output = "./output"
 )
 
 func main() {
-	var input string
-	var output string
 	app := &cli.App{
 		Name:   "toJson",
 		Usage:  "将特定的 xlsx 文件转换为 json 文件",
@@ -55,25 +55,31 @@ func DoConvert(ctx *cli.Context) error {
 	// 2. 读取 excel 文件
 	// 3. 生成 json 文件
 	params := ctx.Args().Slice()
+	fileNum := 0
 	if len(params) == 0 {
 		// 没有参数时，意味着，转换当前目录下的 xlsx 文件，并将其输出到当前文件夹的 output 文件夹下
-		// 转换当前路径下的所有 xlsx 文件 todo
-		ConvertByDir("./example/data")
+		// 转换当前路径下的所有 xlsx 文件
+		fileNum = ConvertByDir(input)
 	} else if len(params) == 1 {
 		// 有一个参数，有两种情况：
 		// 1.参数是输入文件夹
 		// 2.参数是输出文件夹
-		// 转换当前路径下的所有 xlsx 文件 todo
+		// 暂不支持一个参数
 	} else if len(params) == 2 {
+		if input != ctx.Args().Get(0) {
+			input = ctx.Args().Get(0)
+		}
+		if output != ctx.Args().Get(1) {
+			output = ctx.Args().Get(1)
+		}
 		// 2 个参数，一个是输入目录，一个是输出目录
-		fmt.Printf("参数错误")
-		return nil
+		fileNum = ConvertByDir(input)
 	} else {
 		// 其他参数，暂不支持
-		fmt.Printf("参数错误")
+		fmt.Printf("[err] 参数错误")
 		return nil
 	}
-	// fmt.Printf("%s", jsonx.ToJsonIgnoreErr(params))
+	fmt.Printf("[ok] 转换完成，转换了 %d 个文件...\n", fileNum)
 	return nil
 }
 
@@ -86,8 +92,9 @@ func handleForInputParam(p1, p2 string) (inputDir string) {
 	return inputDir
 }
 
-func ConvertByDir(dir string) []string {
-	filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+func ConvertByDir(inputDir string) int {
+	cnt := 0
+	filepath.WalkDir(inputDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			log.Printf("[readDir] err: %v", err)
 			return err
@@ -99,9 +106,10 @@ func ConvertByDir(dir string) []string {
 			return nil
 		}
 		ConvertOneFile(path)
+		cnt++
 		return nil
 	})
-	return []string{}
+	return cnt
 }
 
 func ConvertOneFile(fileFullPath string) error {
@@ -173,7 +181,7 @@ func ConvertOneFile(fileFullPath string) error {
 		fileName := filepath.Base(fileFullPath)
 		fileSuffix := path.Ext(fileFullPath)
 		fileNamePrefix := fileName[0 : len(fileName)-len(fileSuffix)]
-		targetFilePath := path.Join(TargetDir, fileNamePrefix+".json")
+		targetFilePath := path.Join(output, fileNamePrefix+".json")
 		tmpFs, err := os.OpenFile(targetFilePath, os.O_CREATE|os.O_RDWR, 0666)
 		if err != nil {
 			log.Printf("[ConvertOneFile] OpenFile err: %v", err)
