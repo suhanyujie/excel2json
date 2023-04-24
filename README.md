@@ -5,7 +5,7 @@
 * `go run cmd/excel2json/main.go`
 
 ## build
-* `go build -o toJson.exe cmd/excel2json/main.go`
+* `go build -o bin/toJson.exe cmd/excel2json/main.go`
 
 ## ref
 * https://cli.urfave.org/v2
