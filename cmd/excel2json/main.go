@@ -135,9 +135,6 @@ func ConvertOneFile(fileFullPath string) error {
 	colNameArr := make([]string, 0)
 	typeArr := make([]string, 0)
 	for rowIdx, row := range rows {
-		if rowIdx >= 2 {
-			break
-		}
 		switch rowIdx {
 		case 0:
 			colNameArr = append(colNameArr, row...)
@@ -146,15 +143,22 @@ func ConvertOneFile(fileFullPath string) error {
 		case 2:
 			typeArr = append(typeArr, row...)
 		}
+		if rowIdx > 2 {
+			break
+		}
 	}
 	var colKey string
 	for rowIdx, row := range rows {
 		if rowIdx <= 2 {
 			continue
 		}
-		rowMap := make(map[string]any, 0)
+		rowMap := make(map[string]any, len(row))
 		for i, cell := range row {
-			if i > len(colKeys) || len(colKeys[i]) < 1 {
+			if i >= len(colKeys) {
+				break
+			}
+			if len(colKeys[i]) < 1 {
+				// cell 为空，没有内容
 				continue
 			}
 			colKey = colKeys[i]
