@@ -51,6 +51,7 @@ func main() {
 }
 
 func DoConvert(ctx *cli.Context) error {
+	var err error
 	// 1. 读取配置文件
 	// 2. 读取 excel 文件
 	// 3. 生成 json 文件
@@ -59,7 +60,7 @@ func DoConvert(ctx *cli.Context) error {
 	if len(params) == 0 {
 		// 没有参数时，意味着，转换当前目录下的 xlsx 文件，并将其输出到当前文件夹的 output 文件夹下
 		// 转换当前路径下的所有 xlsx 文件
-		fileNum = ConvertByDir(input)
+		fileNum, err = ConvertByDir(input)
 	} else if len(params) == 1 {
 		// 有一个参数，有两种情况：
 		// 1.参数是输入文件夹
@@ -73,13 +74,17 @@ func DoConvert(ctx *cli.Context) error {
 			output = ctx.Args().Get(1)
 		}
 		// 2 个参数，一个是输入目录，一个是输出目录
-		fileNum = ConvertByDir(input)
+		fileNum, err = ConvertByDir(input)
 	} else {
 		// 其他参数，暂不支持
-		fmt.Printf("[err] 参数错误")
+		fmt.Printf("[err] 参数错误 \n")
 		return nil
 	}
-	fmt.Printf("[ok] 转换完成，转换了 %d 个文件...\n", fileNum)
+	if err != nil {
+		fmt.Printf("[err] info: %v \n", err)
+	} else {
+		fmt.Printf("[ok] 转换完成，转换了 %d 个文件...\n", fileNum)
+	}
 	return nil
 }
 
@@ -92,9 +97,9 @@ func handleForInputParam(p1, p2 string) (inputDir string) {
 	return inputDir
 }
 
-func ConvertByDir(inputDir string) int {
+func ConvertByDir(inputDir string) (int, error) {
 	cnt := 0
-	filepath.WalkDir(inputDir, func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(inputDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			log.Printf("[readDir] err: %v", err)
 			return err
@@ -111,7 +116,10 @@ func ConvertByDir(inputDir string) int {
 		cnt++
 		return nil
 	})
-	return cnt
+	if err != nil {
+		return cnt, err
+	}
+	return cnt, nil
 }
 
 func ConvertOneFile(fileFullPath string) error {
