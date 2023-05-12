@@ -1,7 +1,9 @@
 package jsonx
 
 import (
-	"encoding/json"
+	"bytes"
+
+	"github.com/goccy/go-json"
 )
 
 func ToJsonIgnoreErr(v interface{}) string {
@@ -23,4 +25,11 @@ func FromJson(jsonStr string, o interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func JsonStrFormat(jsonCont string) string {
+	src := []byte(jsonCont)
+	dstBuf := bytes.NewBuffer(make([]byte, 0, len(src)))
+	json.Indent(dstBuf, src, "", "    ")
+	return dstBuf.String()
 }
